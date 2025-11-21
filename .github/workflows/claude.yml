@@ -30,6 +30,13 @@ jobs:
         with:
           fetch-depth: 1
 
+
+      - name: Project Setup
+        run: |
+          npm run setup
+          npm run dev:daemon
+
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -40,11 +47,24 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
+          custom_instructions: |
+            The project is already set up with all dependencies installed.
+            The server is already running at localhost:3000. Logs from it
+            are being written to logs.txt. If needed, you can query the
+            db with the 'sqlite3' cli. If needed, use the mcp_playwright
+            set of tools to launch a browser and interact with the app.
 
-          # Optional: Add claude_args to customize behavior and configuration
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://docs.claude.com/en/docs/claude-code/cli-reference for available options
-          # claude_args: '--allowed-tools Bash(gh pr:*)'
-
+          mcp_config: |
+            {
+              "mcpServers": {
+                "playwright": {
+                  "command": "npx",
+                  "args": [
+                    "@playwright/mcp@latest",
+                    "--allowed-origins",
+                    "localhost:3000;cdn.tailwindcss.com;esm.sh"
+                  ]
+                }
+              }
+            }
+          allowed_tools: "Bash (npm:*), Bash (sqlite3:*), mcp_playwright_browser_snapshot, mcp_playwright_click, mcp_playwright_fill, mcp_playwright_navigate, mcp_playwright_get_text_content, mcp_playwright_evaluate, mcp_playwright_screenshot, mcp_playwright_hover, mcp_playwright_select, mcp_playwright_press, mcp_playwright_wait_for_selector, mcp_playwright_get_attribute, mcp_playwright_get_inner_html, mcp_playwright_get_inner_text"
